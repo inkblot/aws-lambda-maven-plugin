@@ -103,6 +103,11 @@
             <groupId>com.jnape.palatable</groupId>
             <artifactId>lambda</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.movealong</groupId>
+            <artifactId>jumpstart-test</artifactId>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
