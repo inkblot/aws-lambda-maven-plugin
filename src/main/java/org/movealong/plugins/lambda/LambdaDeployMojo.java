@@ -3,6 +3,7 @@ package org.movealong.plugins.lambda;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.lambda.AWSLambda;
 import com.amazonaws.services.lambda.AWSLambdaClientBuilder;
+import com.amazonaws.services.lambda.model.FunctionConfiguration;
 import com.amazonaws.services.lambda.model.UpdateFunctionCodeRequest;
 import com.amazonaws.services.lambda.model.UpdateFunctionCodeResult;
 import com.amazonaws.services.s3.AmazonS3;
@@ -19,7 +20,6 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.project.MavenProject;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -38,9 +38,6 @@ import static org.movealong.plugins.lambda.PartNumber.partNumbers;
 @EqualsAndHashCode(callSuper = false)
 public class LambdaDeployMojo extends AbstractMojo {
 
-    @Parameter(defaultValue = "${project}", readonly = true, required = true)
-    private MavenProject project;
-
     @Parameter(required = true)
     private String region;
 
@@ -56,13 +53,16 @@ public class LambdaDeployMojo extends AbstractMojo {
     @Parameter(required = true)
     private String s3Prefix;
 
+    @Parameter(defaultValue = "false")
+    private boolean publish;
+
     @Override
     public void execute() throws MojoFailureException {
         getLog().info(format("Successfully updated function %s",
                              fileExists(getCodeBundle())
                                      .flatMap(functionExists(getRegion(), getFunctionArn()))
                                      .flatMap(uploadBundle(getLog(), getRegion(), getS3Bucket(), getS3Prefix()))
-                                     .flatMap(updateFunctionCode(getRegion(), getS3Bucket()))
+                                     .flatMap(updateFunctionCode(getRegion(), getS3Bucket(), isPublish()))
                                      .fmap(UpdateFunctionCodeResult::getFunctionArn)
                                      .orThrow(MojoFailureException::new)));
     }
@@ -76,55 +76,56 @@ public class LambdaDeployMojo extends AbstractMojo {
     functionExists(String region, String functionArn) {
         return (T t) -> withLambdaClient(
                 region,
-                client -> find(f -> f.getFunctionArn().equals(functionArn), client.listFunctions().getFunctions())
-                        .fmap(f -> tuple(t, f.getFunctionName()))
+                client -> find(functionConfig -> functionConfig.getFunctionArn().equals(functionArn),
+                               client.listFunctions().getFunctions())
+                        .fmap(FunctionConfiguration::getFunctionName)
+                        .fmap(functionName -> tuple(t, functionName))
                         .toEither(() -> format("Function not found: %s", functionArn)));
     }
 
     private static Function<Tuple2<File, String>, Either<String, Tuple3<String, String, CompleteMultipartUploadResult>>>
     uploadBundle(Log log, String region, String bucket, String prefix) {
-        return t -> withS3Client(region, client -> trying(
-                () -> {
-                    File   f       = t._1();
-                    String keyName = prefix + "/" + f.getName();
-                    log.info(format("Uploading: s3://%s/%s", bucket, keyName));
+        return t -> t.into((codeBundle, functionName) -> withS3Client(region, client -> trying(() -> {
+            String key = prefix + "/" + codeBundle.getName();
+            log.info(format("Uploading: s3://%s/%s", bucket, key));
 
-                    String uploadId =
-                            client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, keyName))
-                                  .getUploadId();
-                    return tuple(keyName, t._2(), client.completeMultipartUpload(
-                            new CompleteMultipartUploadRequest(bucket, keyName, uploadId, Id.<Iterable<PartNumber>>id()
-                                    .fmap(map(createUploadPartRequest(bucket, f, keyName, uploadId)))
-                                    .fmap(map(client::uploadPart))
-                                    .fmap(map(UploadPartResult::getPartETag))
-                                    .fmap(toCollection(ArrayList::new))
-                                    .apply(partNumbers(f.length())))));
-                })
-                .biMapL(Throwable::getMessage));
+            String uploadId =
+                    client.initiateMultipartUpload(new InitiateMultipartUploadRequest(bucket, key))
+                          .getUploadId();
+            return tuple(key, functionName, client.completeMultipartUpload(
+                    new CompleteMultipartUploadRequest(bucket, key, uploadId, Id.<Iterable<PartNumber>>id()
+                            .fmap(map(createUploadPartRequest(bucket, codeBundle, key, uploadId)))
+                            .fmap(map(client::uploadPart))
+                            .fmap(map(UploadPartResult::getPartETag))
+                            .fmap(toCollection(ArrayList::new))
+                            .apply(partNumbers(codeBundle.length())))));
+        })
+                .biMapL(Throwable::getMessage)));
     }
 
-    private static Function<PartNumber, UploadPartRequest> createUploadPartRequest(String bucket, File f, String keyName, String uploadId) {
+    private static Function<PartNumber, UploadPartRequest>
+    createUploadPartRequest(String bucket, File codeBundle, String key, String uploadId) {
         return partNumber -> new UploadPartRequest()
                 .withBucketName(bucket)
-                .withKey(keyName)
+                .withKey(key)
                 .withUploadId(uploadId)
                 .withPartNumber(partNumber.getPartNumber())
                 .withFileOffset(partNumber.getStartPosition())
                 .withPartSize(partNumber.getPartSize())
-                .withFile(f);
+                .withFile(codeBundle);
     }
 
     private static Function<Tuple3<String, String, CompleteMultipartUploadResult>, Either<String, UpdateFunctionCodeResult>>
-    updateFunctionCode(String region, String bucket) {
-        return t -> trying(() -> withLambdaClient(
+    updateFunctionCode(String region, String bucket, boolean publish) {
+        return t -> t.into((key, functionName, uploadResult) -> trying(() -> withLambdaClient(
                 region,
                 lambda -> lambda.updateFunctionCode(
                         new UpdateFunctionCodeRequest()
-                                .withFunctionName(t._2())
+                                .withFunctionName(functionName)
                                 .withS3Bucket(bucket)
-                                .withS3Key(t._1())
-                                .withPublish(false))))
-                .biMapL(Throwable::getMessage);
+                                .withS3Key(key)
+                                .withPublish(publish))))
+                .biMapL(Throwable::getMessage));
     }
 
     private static <T> T withLambdaClient(String region, Function<AWSLambda, T> fn) {
