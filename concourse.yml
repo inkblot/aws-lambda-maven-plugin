@@ -1,2 +1,2 @@
 project_name: aws-lambda-maven-plugin
-source_uri: https://git-codecommit.us-east-1.amazonaws.com/v1/repos/aws-lambda-maven-plugin
+source_uri: git@github.com:inkblot/aws-lambda-maven-plugin.git

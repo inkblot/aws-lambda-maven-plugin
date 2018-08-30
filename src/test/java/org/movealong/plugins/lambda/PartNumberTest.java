@@ -9,10 +9,9 @@ import java.util.List;
 import static com.google.common.primitives.Ints.asList;
 import static com.jnape.palatable.lambda.functions.builtin.fn2.Map.map;
 import static com.jnape.palatable.lambda.functions.builtin.fn2.ToCollection.toCollection;
-import static org.hamcrest.core.AllOf.allOf;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.movealong.jumpstart.test.HasMatcher.has;
 import static org.movealong.plugins.lambda.PartNumber.PART_SIZE;
 
 public class PartNumberTest {
@@ -41,17 +40,19 @@ public class PartNumberTest {
         long             contentLength = PART_SIZE * 2 + 3;
         List<PartNumber> partNumbers   = toCollection(ArrayList::new, PartNumber.partNumbers(contentLength));
 
-        assertThat(partNumbers.get(0),
-                   allOf(has(PartNumber::getPartNumber, equalTo(1)),
-                         has(PartNumber::getStartPosition, equalTo(0L)),
-                         has(PartNumber::getPartSize, equalTo(PART_SIZE))));
-        assertThat(partNumbers.get(1),
-                   allOf(has(PartNumber::getPartNumber, equalTo(2)),
-                         has(PartNumber::getStartPosition, equalTo(PART_SIZE)),
-                         has(PartNumber::getPartSize, equalTo(PART_SIZE))));
-        assertThat(partNumbers.get(2),
-                   allOf(has(PartNumber::getPartNumber, equalTo(3)),
-                         has(PartNumber::getStartPosition, equalTo(PART_SIZE * 2)),
-                         has(PartNumber::getPartSize, equalTo(3L))));
+        PartNumber part0 = partNumbers.get(0);
+        assertEquals(1, part0.getPartNumber());
+        assertEquals(0L, part0.getStartPosition());
+        assertEquals(PART_SIZE, part0.getPartSize());
+
+        PartNumber part1 = partNumbers.get(1);
+        assertEquals(2, part1.getPartNumber());
+        assertEquals(PART_SIZE, part1.getStartPosition());
+        assertEquals(PART_SIZE, part1.getPartSize());
+
+        PartNumber part2 = partNumbers.get(2);
+        assertEquals(3, part2.getPartNumber());
+        assertEquals(PART_SIZE * 2L, part2.getStartPosition());
+        assertEquals(3L, part2.getPartSize());
     }
 }
