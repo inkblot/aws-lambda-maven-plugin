@@ -25,7 +25,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.function.Function;
 
-import static com.jnape.palatable.lambda.adt.Either.*;
+import static com.jnape.palatable.lambda.adt.Either.trying;
+import static com.jnape.palatable.lambda.adt.Maybe.just;
 import static com.jnape.palatable.lambda.adt.hlist.HList.tuple;
 import static com.jnape.palatable.lambda.functions.builtin.fn2.Find.find;
 import static com.jnape.palatable.lambda.functions.builtin.fn2.Map.map;
@@ -68,8 +69,8 @@ public class LambdaDeployMojo extends AbstractMojo {
     }
 
     private static Either<String, File> fileExists(File codeBundle) {
-        return codeBundle.exists() ? right(codeBundle)
-                                   : left(format("Code bundle not found: %s", codeBundle.getAbsolutePath()));
+        return just(codeBundle).filter(File::exists)
+                               .toEither(() -> format("Code bundle not found: %s", codeBundle.getAbsolutePath()));
     }
 
     private static <T> Function<T, Either<String, Tuple2<T, String>>>
