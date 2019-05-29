@@ -12,6 +12,7 @@ import com.amazonaws.services.s3.model.*;
 import com.jnape.palatable.lambda.adt.Either;
 import com.jnape.palatable.lambda.adt.hlist.Tuple2;
 import com.jnape.palatable.lambda.adt.hlist.Tuple3;
+import com.jnape.palatable.lambda.functions.Fn1;
 import com.jnape.palatable.lambda.functions.builtin.fn1.Id;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -73,7 +74,7 @@ public class LambdaDeployMojo extends AbstractMojo {
                                .toEither(() -> format("Code bundle not found: %s", codeBundle.getAbsolutePath()));
     }
 
-    private static <T> Function<T, Either<String, Tuple2<T, String>>>
+    private static <T> Fn1<T, Either<String, Tuple2<T, String>>>
     functionExists(String region, String functionArn) {
         return (T t) -> withLambdaClient(
                 region,
@@ -84,7 +85,7 @@ public class LambdaDeployMojo extends AbstractMojo {
                         .toEither(() -> format("Function not found: %s", functionArn)));
     }
 
-    private static Function<Tuple2<File, String>, Either<String, Tuple3<String, String, CompleteMultipartUploadResult>>>
+    private static Fn1<Tuple2<File, String>, Either<String, Tuple3<String, String, CompleteMultipartUploadResult>>>
     uploadBundle(Log log, String region, String bucket, String prefix) {
         return t -> t.into((codeBundle, functionName) -> withS3Client(region, client -> trying(() -> {
             String key = prefix + "/" + codeBundle.getName();
@@ -104,7 +105,7 @@ public class LambdaDeployMojo extends AbstractMojo {
                 .biMapL(Throwable::getMessage)));
     }
 
-    private static Function<PartNumber, UploadPartRequest>
+    private static Fn1<PartNumber, UploadPartRequest>
     createUploadPartRequest(String bucket, File codeBundle, String key, String uploadId) {
         return partNumber -> new UploadPartRequest()
                 .withBucketName(bucket)
@@ -116,7 +117,7 @@ public class LambdaDeployMojo extends AbstractMojo {
                 .withFile(codeBundle);
     }
 
-    private static Function<Tuple3<String, String, CompleteMultipartUploadResult>, Either<String, UpdateFunctionCodeResult>>
+    private static Fn1<Tuple3<String, String, CompleteMultipartUploadResult>, Either<String, UpdateFunctionCodeResult>>
     updateFunctionCode(String region, String bucket, boolean publish) {
         return t -> t.into((key, functionName, uploadResult) -> trying(() -> withLambdaClient(
                 region,
