@@ -12,7 +12,7 @@
 
     <groupId>org.movealong.plugins</groupId>
     <artifactId>aws-lambda-maven-plugin</artifactId>
-    <version>0.0.9-SNAPSHOT</version>
+    <version>0.0.9</version>
     <packaging>maven-plugin</packaging>
     <name>aws-lambda-maven-plugin</name>
     <description>A plugin for updating the code bundle of an AWS Lambda function</description>
