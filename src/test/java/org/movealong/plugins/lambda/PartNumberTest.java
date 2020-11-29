@@ -9,9 +9,9 @@ import java.util.List;
 import static com.google.common.primitives.Ints.asList;
 import static com.jnape.palatable.lambda.functions.builtin.fn2.Map.map;
 import static com.jnape.palatable.lambda.functions.builtin.fn2.ToCollection.toCollection;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 import static org.movealong.plugins.lambda.PartNumber.PART_SIZE;
 
 public class PartNumberTest {
@@ -37,8 +37,8 @@ public class PartNumberTest {
 
     @Test
     public void partBoundaries() {
-        long             contentLength = PART_SIZE * 2 + 3;
-        List<PartNumber> partNumbers   = toCollection(ArrayList::new, PartNumber.partNumbers(contentLength));
+        long contentLength = PART_SIZE * 2 + 3;
+        List<PartNumber> partNumbers = toCollection(ArrayList::new, PartNumber.partNumbers(contentLength));
 
         PartNumber part0 = partNumbers.get(0);
         assertEquals(1, part0.getPartNumber());
