@@ -1,0 +1,6 @@
+#!/bin/bash
+set -eu
+
+_SELF="${0##*/}"
+_HERE="$(dirname $(realpath ${0}))"
+${_HERE}/../../concourse-java-ossrh-pipeline/create-pipeline ${_HERE}
