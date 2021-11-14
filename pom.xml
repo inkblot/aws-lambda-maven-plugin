@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.movealong</groupId>
         <artifactId>movealong-oss</artifactId>
-        <version>0.0.16</version>
+        <version>0.0.19</version>
     </parent>
 
     <groupId>org.movealong.plugins</groupId>
@@ -70,15 +70,6 @@
         <dependency>
             <groupId>com.jnape.palatable</groupId>
             <artifactId>lambda</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.hamcrest</groupId>
-            <artifactId>hamcrest</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-api</artifactId>
         </dependency>
     </dependencies>
 
