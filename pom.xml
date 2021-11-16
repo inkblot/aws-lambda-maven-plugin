@@ -7,12 +7,12 @@
     <parent>
         <groupId>org.movealong</groupId>
         <artifactId>movealong-oss</artifactId>
-        <version>0.0.19</version>
+        <version>0.0.20</version>
     </parent>
 
     <groupId>org.movealong.plugins</groupId>
     <artifactId>aws-lambda-maven-plugin</artifactId>
-    <version>0.0.11</version>
+    <version>0.0.12</version>
     <packaging>maven-plugin</packaging>
     <name>aws-lambda-maven-plugin</name>
     <description>A plugin for updating the code bundle of an AWS Lambda function</description>
@@ -46,22 +46,10 @@
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-lambda</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-s3</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>commons-logging</groupId>
-                    <artifactId>commons-logging</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -75,13 +63,6 @@
 
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>com.amazonaws</groupId>
-                <artifactId>aws-java-sdk-bom</artifactId>
-                <version>1.11.388</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>org.codehaus.plexus</groupId>
                 <artifactId>plexus-utils</artifactId>
@@ -113,7 +94,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.4</version>
+                <version>3.6.1</version>
             </plugin>
         </plugins>
     </build>
