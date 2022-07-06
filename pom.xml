@@ -7,12 +7,12 @@
     <parent>
         <groupId>org.movealong</groupId>
         <artifactId>movealong-oss</artifactId>
-        <version>0.0.28</version>
+        <version>0.0.30</version>
     </parent>
 
     <groupId>org.movealong.plugins</groupId>
     <artifactId>aws-lambda-maven-plugin</artifactId>
-    <version>0.0.18</version>
+    <version>0.0.19</version>
     <packaging>maven-plugin</packaging>
     <name>aws-lambda-maven-plugin</name>
     <description>A plugin for updating the code bundle of an AWS Lambda function</description>
